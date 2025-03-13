@@ -1,11 +1,16 @@
 "use client"; // Add this to specify client-side rendering
 
+"use client"; // Add this to specify client-side rendering
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 
 // Import required CSS
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+
+// Define the ResizeHandle type
+type ResizeHandle = 's' | 'w' | 'e' | 'n' | 'sw' | 'nw' | 'se' | 'ne';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -158,6 +163,8 @@ const GridLayout: React.FC<GridLayoutProps> = ({
     preventCollision: false,
     isResizable: true,
     isDraggable: true,
+    // Add this line with our defined type
+    resizeHandles: ['s', 'w', 'e', 'n', 'sw', 'nw', 'se', 'ne'] as ResizeHandle[],
   };
 
   // Wrap each child in a div with clear borders
@@ -195,6 +202,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
         isResizable={gridConfig.isResizable}
         isDraggable={gridConfig.isDraggable}
         onLayoutChange={handleLayoutChange}
+        resizeHandles={gridConfig.resizeHandles}
       >
         {borderedChildren}
       </ResponsiveGridLayout>
