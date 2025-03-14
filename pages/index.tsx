@@ -1,17 +1,35 @@
 import React from 'react';
-import GridLayout from '@/components/GridLayout';
+import GridLayout from '../components/GridLayout';
+import ComponentLoader from '../components/ComponentLoader';
+import { GridDimensions } from '../components/types';
+import ThemeSwitcherButton from '../components/ThemeSwitcherButton';
 
-export default function Home() {
+// First update your interface to correctly reflect the children as a render prop
+interface GridTileProps {
+  tileId: string;
+  dimensions?: GridDimensions;
+}
+
+const GridTile: React.FC<GridTileProps> = ({ tileId, dimensions }) => {
+  // Simply call the loader with the dimensions
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+    <div className="w-full h-full">
+      {ComponentLoader.loadComponent(tileId, dimensions)}
+    </div>
+  );
+};
+
+export default function Dashboard() {
+  return (
+    <div className="w-full h-screen">
+      {/* Theme Switcher positioned at top middle */}
+      <div className="flex justify-center py-2">
+        <ThemeSwitcherButton />
+      </div>
+      
       <GridLayout>
-        {/* Create 8 tiles with matching keys from the layout */}
-        {[...Array(8)].map((_, index) => (
-          <div key={`tile-${index}`} className="bg-gray-200 rounded shadow p-4">
-            <h3>Tile {index + 1}</h3>
-            <p>Drag or resize me!</p>
-          </div>
+        {Array.from({ length: 8 }, (_, i) => (
+          <GridTile key={i} tileId={`tile-${i}`} />
         ))}
       </GridLayout>
     </div>

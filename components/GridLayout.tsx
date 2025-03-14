@@ -1,6 +1,4 @@
-"use client"; // Add this to specify client-side rendering
-
-"use client"; // Add this to specify client-side rendering
+"use client";
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
@@ -8,6 +6,8 @@ import { Responsive, WidthProvider } from 'react-grid-layout';
 // Import required CSS
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+import { GridDimensions } from './types';
+import ComponentLoader from './ComponentLoader';
 
 // Define the ResizeHandle type
 type ResizeHandle = 's' | 'w' | 'e' | 'n' | 'sw' | 'nw' | 'se' | 'ne';
@@ -19,7 +19,6 @@ interface GridLayoutProps {
   className?: string;
   layouts?: any;
   onLayoutChange?: (layout: any, layouts: any) => void;
-  tileBorderClass?: string;
 }
 
 // Generate layout based on orientation
@@ -39,7 +38,6 @@ const generateLayout = (isLandscape: boolean) => {
   
   for (let row = 0; row < tilesPerCol; row++) {
     for (let col = 0; col < tilesPerRow; col++) {
-        console.log(`Adding tile ${itemCount} at position (${col * 2}, ${row * 2})`);
       items.push({
         i: `tile-${itemCount}`,
         x: col * 2,
@@ -61,7 +59,6 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   className = "",
   layouts,
   onLayoutChange,
-  tileBorderClass = "border-2 border-gray-300 rounded-md shadow-sm hover:border-blue-400"
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   // Initialize with default values, don't access window here
@@ -157,35 +154,49 @@ const GridLayout: React.FC<GridLayoutProps> = ({
     breakpoints: { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 },
     cols: gridCols,
     rowHeight: rowHeight,
-    containerPadding: [10, 10] as [number, number],
-    margin: [10, 10] as [number, number],
+    containerPadding: [16, 16] as [number, number],
+    margin: [16, 16] as [number, number],
+    verticalCompact: true,
     compactType: 'vertical',
-    preventCollision: false,
+    preventCollision: true, // Change to true to prevent items from overlapping
     isResizable: true,
     isDraggable: true,
+    useCSSTransforms: true,
     // Add this line with our defined type
     resizeHandles: ['s', 'w', 'e', 'n', 'sw', 'nw', 'se', 'ne'] as ResizeHandle[],
   };
 
-  // Wrap each child in a div with clear borders
-  const borderedChildren = React.Children.map(children, (child) => {
-    return (
-      <div 
-        className={tileBorderClass} 
-        style={{ 
-          width: '100%', 
-          height: '100%', 
-          overflow: 'hidden',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          boxSizing: 'border-box'
-        }}
-      >
-        {child}
-      </div>
-    );
-  });
+  // Generate tiles directly with ComponentLoader instead of using ComponentSelector
+  const generateTiles = () => {
+    const tiles = [];
+    
+    // Find how many tiles we need based on the layout
+    const tileCount = currentLayouts.lg.length;
+    
+    for (let i = 0; i < tileCount; i++) {
+      const tileId = `tile-${i}`;
+      
+      // Find the corresponding layout item for this tile
+      const layoutItem = currentLayouts.lg.find((item: any) => item.i === tileId);
+      
+      // Create the dimensions object
+      const dimensions: GridDimensions | undefined = layoutItem ? {
+        w: layoutItem.w,
+        h: layoutItem.h,
+        cols: gridCols.lg,
+        rowHeight: rowHeight
+      } : undefined;
+      
+      // Add the tile with its component directly loaded
+      tiles.push(
+        <div key={tileId} className="w-full h-full overflow-hidden">
+          {ComponentLoader.loadComponent(tileId, dimensions)}
+        </div>
+      );
+    }
+    
+    return tiles;
+  };
 
   return (
     <div className="grid-layout-container w-full h-full" ref={containerRef}>
@@ -204,10 +215,9 @@ const GridLayout: React.FC<GridLayoutProps> = ({
         onLayoutChange={handleLayoutChange}
         resizeHandles={gridConfig.resizeHandles}
       >
-        {borderedChildren}
+        {generateTiles()}
       </ResponsiveGridLayout>
     </div>
   );
 };
-
 export default GridLayout;

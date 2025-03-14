@@ -1,7 +1,9 @@
 // import 'tailwindcss/tailwind.css';
 // Or if you have a custom Tailwind setup:
 // import '@/styles/tailwind.css';
+import React from 'react';
 import type { Metadata } from 'next';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 export const metadata: Metadata = {
   title: 'Dashboard App',
@@ -15,7 +17,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
